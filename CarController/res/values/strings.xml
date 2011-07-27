@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="hello">Hello World, CarController!</string>
+    <string name="app_name">CarController</string>
+    <string name="test_activity">CarControllerTest</string>
+</resources>
