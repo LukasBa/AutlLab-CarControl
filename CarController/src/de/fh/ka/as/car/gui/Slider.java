@@ -6,7 +6,13 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 
 public class Slider extends GUIComponent {
-	protected double min, max;
+	//protected double min, max;
+
+	/**
+	 * Converts pixel to min, max
+	 */
+	protected RangeConverter range;
+	protected double value;
 
 	public enum Orientation {
 		Horizontal, Vertical
@@ -14,81 +20,73 @@ public class Slider extends GUIComponent {
 
 	protected Orientation direction = Orientation.Vertical;
 
-	protected double value;
+	public Slider(int x, int y, int height, int width, double min, double max,
+			double value) {
+		super(x, y, height, width);
+		switch (direction) {
+		case Vertical:
+			range = new RangeConverter(y, y + height, min, max);
+			break;
+		case Horizontal:
+			range = new RangeConverter(x, x + width, min, max);
+		default:
+			break;
+		}
+
+		this.value = value;
+	}
 
 	public void setValue(double value) {
 		this.value = value;
-		if (value < min) {
-			value = min;
-		} else if (value > max) {
-			value = max;
+		if (value < range.getInputMin()) {
+			value = range.getInputMin();
+		} else if (value > range.getInputMax()) {
+			value = range.getInputMax();
 		}
-		lastPY = max;
-		switch (direction) {
-		case Vertical:
-			lastPY = ((value) / (max - min)) * getHeight() + y;
-			System.out.println(lastPY);
-		}
-
 	}
 
 	public void setValue(int px, int py) {
 		if (contains(px, py)) {
 			switch (direction) {
 			case Vertical:
-				setValueVertical(px, py);
-
+				setValueVertical(py);
 				break;
-
 			}
 		}
 	}
 
-	private void setValueVertical(int px, int py) {
-		double height = getHeight();
-		double partLenght = height + y - py;
-		value = (partLenght / height) * getRange() + min;
+	private void setValueVertical(int py) {
+		value = range.getOutputMax()-range.toOutput(py);
 		notifyListener(new SliderEvent(this, "Slided", value));
-		lastPY = py;
 	}
-
-	private double lastPY;
 
 	@Override
 	public void draw(Canvas canvas) {
 		super.draw(canvas);
 		Paint paint = new Paint();
 		paint.setColor(Color.BLUE);
-		Rect rect = new Rect(x, (int) lastPY, x + width, y + height);
+		Rect rect = new Rect(x, (int) range.toInput(value), x + width, y + height);
 		canvas.drawRect(rect, paint);
 	}
 
 	public double getRange() {
-		return max - min;
-	}
-
-	public Slider(int x, int y, int height, int width, double min, double max,
-			double value) {
-		super(x, y, height, width);
-		this.min = min;
-		this.max = max;
-		this.value = value;
+		return range.getOutputRange();
 	}
 
 	public double getMin() {
-		return min;
+		return range.getOutputMin();
 	}
 
 	public void setMin(double min) {
-		this.min = min;
+		range.setOutputMin(min);
 	}
 
 	public double getMax() {
-		return max;
+		return range.getOutputMax();
 	}
 
 	public void setMax(double max) {
-		this.max = max;
+		range.setOutputMax(max);
 	}
 
 	public double getValue() {

@@ -1,9 +1,6 @@
-package de.fh.ka.as.car.hardware;
+package de.fh.ka.as.car;
 
-
-import ioio.lib.R;
 import ioio.lib.api.DigitalOutput;
-import ioio.lib.api.IOIO;
 import ioio.lib.api.PwmOutput;
 import ioio.lib.api.exception.ConnectionLostException;
 import ioio.lib.util.AbstractIOIOActivity;
@@ -12,6 +9,8 @@ import android.util.Log;
 import android.widget.EditText;
 import android.widget.SeekBar;
 import android.widget.ToggleButton;
+import de.fh.ka.as.car.hardware.Engine;
+import de.fh.ka.as.car.hardware.Engine.Direction;
 
 /**
  * This is the main activity of the HelloIOIO example application.
@@ -27,74 +26,76 @@ public class MainActivity extends AbstractIOIOActivity {
 	private SeekBar driveSlider;
 	private EditText speedTextField;
 	private EditText driveTextField;
-	
+
 	private int speedServoPort = 3;
 	private int driveServoPort = 4;
-	
+
+	private Engine engine;
+
 	private static final int MAXIMUM_DRIVE_PULSE_WIDTH = 2000;
-	
+
 	private static final int MINIMUM_DRIVE_PULSE_WIDTH = 1000;
 
-	/**
-	 * Minimum pulse width in microsecends.
-	 */
-	private static final int MINIMUM_SPEED_PULSE_WIDTH = 1000;
+	//
+	// /**
+	// * Minimum pulse width in microsecends.
+	// */
+	// private static final int MINIMUM_SPEED_PULSE_WIDTH = 1000;
+	//
+	// /**
+	// * Maximum pulse width in microsecends.
+	// */
+	// private static final int MAXIMUM_SPEED_PULSE_WIDTH = 2000;
 
 	/**
-	 * Maximum pulse width in microsecends.
-	 */
-	private static final int MAXIMUM_SPEED_PULSE_WIDTH = 2000;
-
-	/**
-	 * Called when the activity is first created. Here we normally initialize
-	 * our GUI.
+	 * Called when the activity is first created. Here we normally initialize our
+	 * GUI.
 	 */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.main);
+		setContentView(R.layout.hardware_test);
 		button_ = (ToggleButton) findViewById(R.id.button);
 		speedSlider = (SeekBar) findViewById(R.id.seekBar1);
 		driveSlider = (SeekBar) findViewById(R.id.seekBar2);
 		speedTextField = (EditText) findViewById(R.id.SpeedTextField);
 		driveTextField = (EditText) findViewById(R.id.DriveTextField);
-		
-		
-		speedSlider.setMax((MAXIMUM_SPEED_PULSE_WIDTH - MINIMUM_SPEED_PULSE_WIDTH)-400);
+
+		speedSlider.setMax(1000);
 		speedSlider.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
 			@Override
-			public void onStopTrackingTouch(SeekBar paramSeekBar) {	}
-			
+			public void onStopTrackingTouch(SeekBar paramSeekBar) {
+			}
+
 			@Override
-			public void onStartTrackingTouch(SeekBar paramSeekBar) {}
-			
+			public void onStartTrackingTouch(SeekBar paramSeekBar) {
+			}
+
 			@Override
-			public void onProgressChanged(SeekBar paramSeekBar, int paramInt,
-					boolean paramBoolean) {
-				int value = speedSlider.getProgress() + MINIMUM_SPEED_PULSE_WIDTH;
-				//Log.i("IOIO", "slider: " + value);
-				speedTextField.setText(""+value);
+			public void onProgressChanged(SeekBar paramSeekBar, int paramInt, boolean paramBoolean) {
+				double value = speedSlider.getProgress() / (double) 1000;
+				Log.i("IOIO", "slider: " + value);
+				speedTextField.setText("" + value);
 			}
 		});
-		
 
 		driveSlider.setMax(MAXIMUM_DRIVE_PULSE_WIDTH - MINIMUM_DRIVE_PULSE_WIDTH);
 		driveSlider.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
 			@Override
-			public void onStopTrackingTouch(SeekBar paramSeekBar) {	}
-			
+			public void onStopTrackingTouch(SeekBar paramSeekBar) {
+			}
+
 			@Override
-			public void onStartTrackingTouch(SeekBar paramSeekBar) {}
-			
+			public void onStartTrackingTouch(SeekBar paramSeekBar) {
+			}
+
 			@Override
-			public void onProgressChanged(SeekBar paramSeekBar, int paramInt,
-					boolean paramBoolean) {
+			public void onProgressChanged(SeekBar paramSeekBar, int paramInt, boolean paramBoolean) {
 				int value = driveSlider.getProgress() + MINIMUM_DRIVE_PULSE_WIDTH;
-				//Log.i("IOIO", "slider: " + value);
-				driveTextField.setText(""+value);
+				// Log.i("IOIO", "slider: " + value);
+				driveTextField.setText("" + value);
 			}
 		});
-
 
 	}
 
@@ -102,13 +103,13 @@ public class MainActivity extends AbstractIOIOActivity {
 	 * This is the thread on which all the IOIO activity happens. It will be run
 	 * every time the application is resumed and aborted when it is paused. The
 	 * method setup() will be called right after a connection with the IOIO has
-	 * been established (which might happen several times!). Then, loop() will
-	 * be called repetitively until the IOIO gets disconnected.
+	 * been established (which might happen several times!). Then, loop() will be
+	 * called repetitively until the IOIO gets disconnected.
 	 */
 	class IOIOThread extends AbstractIOIOActivity.IOIOThread {
 		/** The on-board LED. */
 		private DigitalOutput led_;
-		private PwmOutput speedPwm;
+		// private PwmOutput speedPwm;
 		private PwmOutput drivePwm;
 
 		/**
@@ -116,14 +117,15 @@ public class MainActivity extends AbstractIOIOActivity {
 		 * Typically used to open pins.
 		 * 
 		 * @throws ConnectionLostException
-		 *             When IOIO connection is lost.
+		 *            When IOIO connection is lost.
 		 * 
 		 * @see ioio.lib.util.AbstractIOIOActivity.IOIOThread#setup()
 		 */
 		@Override
 		protected void setup() throws ConnectionLostException {
 			led_ = ioio_.openDigitalOutput(0, true);
-			speedPwm = ioio_.openPwmOutput(speedServoPort, 50);
+			// speedPwm = ioio_.openPwmOutput(speedServoPort, 50);
+			engine = new Engine(ioio_, speedServoPort, 1450, 1500, 1600);
 			drivePwm = ioio_.openPwmOutput(driveServoPort, 50);
 		}
 
@@ -131,25 +133,26 @@ public class MainActivity extends AbstractIOIOActivity {
 		 * Called repetitively while the IOIO is connected.
 		 * 
 		 * @throws ConnectionLostException
-		 *             When IOIO connection is lost.
+		 *            When IOIO connection is lost.
 		 * 
 		 * @see ioio.lib.util.AbstractIOIOActivity.IOIOThread#loop()
 		 */
 		@Override
 		protected void loop() throws ConnectionLostException {
 			led_.write(!button_.isChecked());
-			
-			int value = speedSlider.getProgress() + MINIMUM_SPEED_PULSE_WIDTH;
-			Log.i("IOIO", "SpeedSlider: " + value);
-			speedPwm.setPulseWidth(value);
-			
-			value = driveSlider.getProgress() + MINIMUM_DRIVE_PULSE_WIDTH;
-			Log.i("IOIO", "DriveSlider: " + value);
-			drivePwm.setPulseWidth(value);
-			
+
+			double speedValue = speedSlider.getProgress() / 1000;
+			Log.i("IOIO", "SpeedSlider: " + speedValue);
+			engine.setSpeed(speedValue, Direction.Forward);
+
+			int driveValue = driveSlider.getProgress() + MINIMUM_DRIVE_PULSE_WIDTH;
+			Log.i("IOIO", "DriveSlider: " + driveValue);
+			drivePwm.setPulseWidth(driveValue);
+
 			try {
 				sleep(10);
-			} catch (InterruptedException e) {}
+			} catch (InterruptedException e) {
+			}
 		}
 	}
 
