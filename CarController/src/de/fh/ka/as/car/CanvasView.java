@@ -11,7 +11,6 @@ import android.graphics.PointF;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.Window;
 import android.view.View.OnTouchListener;
 import de.fh.ka.as.car.gui.ActionEvent;
 import de.fh.ka.as.car.gui.ActionListener;
@@ -27,14 +26,14 @@ public class CanvasView extends View implements OnTouchListener {
 
 	Button button;
 	Slider slider;
+
 	public CanvasView(Context context) {
 		super(context);
 
-		 slider = new Slider(10, 10, 320, 80, 1500, 2000, 1500);
+		slider = new Slider(10, 10, 320, 80, 1500, 2000, 1500);
 		// GUIComponent button = new GUIComponent(50, 120, 100, 40);
-		Bitmap bitmap = BitmapFactory.decodeResource(getResources(),
-				R.drawable.pedal);
-		 button = new Button(350, 250, 120, 90, bitmap);
+		Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.pedal);
+		button = new Button(350, 250, 120, 90, bitmap);
 		guiComponents.add(button);
 		guiComponents.add(slider);
 		button.addActionListener(new ActionListener() {
@@ -44,8 +43,8 @@ public class CanvasView extends View implements OnTouchListener {
 				ButtonEvent buttonEvent = (ButtonEvent) event;
 				slider.setValue(1);
 				slider.setTouchEnabled(!button.isPressed());
-				
-				Log.i("Button", "is pressed: "+button.isPressed());
+
+				Log.i("Button", "is pressed: " + button.isPressed());
 			}
 		});
 
